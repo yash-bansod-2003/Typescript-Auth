@@ -5,6 +5,7 @@ import CustomErrorHandler from "@services/customErrorHandler";
 import { FORGET_SECRET, BACKEND_URL } from '@/config';
 import JwtService from "@services/jwtService";
 import bcrypt from 'bcrypt';
+import { emailService } from '@/services/email';
 
 interface ForgotType {
     email: string
@@ -52,32 +53,14 @@ const ForgotController = {
             const link = `${BACKEND_URL}/api/auth/reset-password/${user._id}/${token}`;
 
             /* SEND EMAIL LOGIC*/
-            // let testAccount = await nodemailer.createTestAccount();
 
-            // // create reusable transporter object using the default SMTP transport
-            // const transporter = nodemailer.createTransport({
-            //     host: 'smtp.ethereal.email',
-            //     port: 587,
-            //     auth: {
-            //         user: 'clinton4@ethereal.email',
-            //         pass: 'bzM7nd1CUQwQ6K4a9E'
-            //     }
-            // });
+            const isEmailSent = await emailService(email, user.name, link);
 
-            // // send mail with defined transport object
-            // let info = await transporter.sendMail({
-            //     from: '"Fred Foo 👻" <hello@gmail.com>', // sender address
-            //     to: "yashbansod2020@gmail.com", // list of receivers
-            //     subject: "Reset Password ✔", // Subject line
-            //     text: "Hello world?", // plain text body
-            //     html: "<b>Hello world? Reset Your Password</b>", // html body
-            // });
+            if (!isEmailSent) {
+                return next(CustomErrorHandler.serverError('can not sent email'))
+            }
 
-            // if (!info.messageId) {
-            //     return next(customErrorHandler.serverError());
-            // }
-
-            return res.json({ status: link });
+            return res.json({ status: 'email sent' });
         } catch (error) {
             return next(error);
         }
